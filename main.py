@@ -1,29 +1,56 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 from input import InputBox
 
-st.set_page_config(page_title="Simple Calculator")
+st.set_page_config(page_title="PyGraph", layout="wide")
 st.title("📈 PyGraph")
 
-
 equation = InputBox()
-freq = st.slider("Frequency", 1, 10, 1)
 
+x = np.linspace(-10, 10, 2000)
 
-x = np.linspace(0, 2 * np.pi, 500)
-if equation == "sin":
-    y = np.sin(freq * x)
-elif equation == "cos":
-    y = np.cos(freq * x)
-else:
-    y = np.tan(freq * x)
+try:
+    f = equation.parse()
+    y = np.array(f(x), dtype=float)
+    y[~np.isfinite(y)] = np.nan
 
+    fig = go.Figure()
 
-chart_data = pd.DataFrame({
-    'x': x,
-    'y': y
-}).set_index('x')
+    fig.add_trace(go.Scatter(
+        x=x, y=y,
+        mode="lines",
+        line=dict(color="#1f77b4", width=2),
+        name=equation.expr_text
+    ))
 
+    fig.update_layout(
+        dragmode="pan",                  # pan by default, scroll to zoom
+        xaxis=dict(
+            showgrid=True,
+            zeroline=True,
+            zerolinecolor="black",
+            zerolinewidth=1.5,
+        ),
+        yaxis=dict(
+            showgrid=True,
+            zeroline=True,
+            zerolinecolor="black",
+            zerolinewidth=1.5,
+        ),
+        margin=dict(l=0, r=0, t=30, b=0),
+        height=600,
+    )
 
-st.line_chart(chart_data)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={
+            "scrollZoom": True,          # smooth scroll to zoom
+            "displayModeBar": True,
+            "modeBarButtonsToRemove": ["select2d", "lasso2d"],
+        }
+    )
+except Exception as e:
+    st.error(f"Invalid function: {e}")
