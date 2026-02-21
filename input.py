@@ -16,6 +16,10 @@ class InputBox():
         }
         pass
 
-    def render(self):
-        return st.text_input("Enter f(x)", value=self.default)
+    def parse(self):
+        expr = sp.sympify(self.expr_text, locals=self._allowed)
+        return sp.lambdify(sp.symbols("x"), expr, modules=["numpy"])
+
+    def __eq__(self, other):
+        return self.expr_text == other
     
