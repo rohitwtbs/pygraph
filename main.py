@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 st.set_page_config(page_title="Simple Calculator")
-st.title("📈 Native Streamlit Graph")
+st.title("📈 PyGraph")
 
 # 1. Inputs using Streamlit widgets
 equation = st.selectbox("Select Function", ["sin", "cos", "tan"])
