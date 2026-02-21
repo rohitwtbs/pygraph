@@ -6,8 +6,7 @@ import sympy as sp
 
 class InputBox():
     def __init__(self, default="sinx(x)"):
-        self.expr_text = ""
-        self.default = default
+        self.expr_text = st.text_input("Enter f(x)", value=default)
         self.allowed = {
             "x": sp.symbols("x)"),
             "sin": sp.sin,
