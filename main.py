@@ -1,12 +1,13 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+from input import InputBox
 
 st.set_page_config(page_title="Simple Calculator")
 st.title("📈 PyGraph")
 
 
-equation = st.selectbox("Select Function", ["sin", "cos", "tan"])
+equation = InputBox()
 freq = st.slider("Frequency", 1, 10, 1)
 
 
