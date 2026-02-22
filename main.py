@@ -2,10 +2,34 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="PyGraph", layout="wide")
-# Theme colours (bg, text, primary) come from .streamlit/config.toml which is
-# embedded in the initial HTTP response — the client applies them before the
-# JS bundle even executes, so there is no white flash.
+st.set_page_config(
+    page_title="PyGraph",
+    layout="wide",
+    menu_items={},   # removes hamburger menu → one fewer deferred DOM subtree
+)
+# Theme colours come from .streamlit/config.toml, embedded in the initial HTTP
+# response, so the browser applies them before the JS bundle executes —
+# no white flash on load.
+
+# ── Critical CSS — injected before any component renders ───────────────────
+# Hiding the Streamlit chrome elements (header, footer, decoration bar) means
+# they never appear and then disappear, which was adding a late visual-change
+# event that dragged the Lighthouse Speed Index well below 0.9.
+st.markdown(
+    """
+    <style>
+    header[data-testid="stHeader"],
+    #stDecoration,
+    footer { display: none !important; }
+
+    /* Remove the excess top padding so content reaches the viewport faster,
+       reducing the time-to-first-meaningful-paint. */
+    .main .block-container { padding-top: 1rem !important; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 BG_COLOR   = "#0e1117"
 GRID_COLOR = "#2d2d2d"
