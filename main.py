@@ -49,15 +49,33 @@ def compute_graph(equation: str, freq: int):
 # ── UI ──────────────────────────────────────────────────────────────────────
 st.title("📈 PyGraph")
 
-equation = st.selectbox(
-    "Select Function",
-    ["sin", "cos", "tan"],
-    index=None,
-    placeholder="Choose a function to plot…",
-)
+# Place the selectbox and Plot button side-by-side.
+col_input, col_btn = st.columns([5, 1])
 
-if equation is None:
-    st.info("Select a function above to plot the graph.", icon="📈")
+with col_input:
+    equation = st.selectbox(
+        "Select Function",
+        ["sin", "cos", "tan"],
+        index=None,
+        placeholder="Choose a function to plot…",
+    )
+
+with col_btn:
+    # Invisible label keeps the button vertically aligned with the selectbox.
+    st.markdown('<div style="margin-top:28px"></div>', unsafe_allow_html=True)
+    plot_clicked = st.button("Plot 📈", use_container_width=True)
+
+# Persist the last successfully plotted equation across reruns.
+if plot_clicked:
+    if equation is not None:
+        st.session_state["active_equation"] = equation
+    else:
+        st.warning("Please select a function before plotting.", icon="⚠️")
+
+active_equation = st.session_state.get("active_equation")
+
+if active_equation is None:
+    st.info("Select a function and click **Plot** to draw the graph.", icon="📈")
 else:
     freq = st.slider("Frequency", 1, 10, 1)
 
@@ -73,4 +91,4 @@ else:
             use_container_width=True,
         )
 
-    render_chart(equation, freq)
+    render_chart(active_equation, freq)
