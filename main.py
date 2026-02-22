@@ -3,22 +3,9 @@ import numpy as np
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="PyGraph", layout="wide")
-
-# ── Instant dark background ────────────────────────────────────────────────
-# Injected before any Streamlit widget renders, so the browser paints the
-# correct background immediately instead of showing a white flash.
-st.html("""
-<style>
-  html, body,
-  [data-testid="stApp"],
-  [data-testid="stAppViewContainer"],
-  [data-testid="stMain"] {
-    background-color: #0e1117 !important;
-  }
-  /* Suppress the Streamlit rainbow top-bar decoration */
-  [data-testid="stDecoration"] { display: none; }
-</style>
-""")
+# Theme colours (bg, text, primary) come from .streamlit/config.toml which is
+# embedded in the initial HTTP response — the client applies them before the
+# JS bundle even executes, so there is no white flash.
 
 BG_COLOR   = "#0e1117"
 GRID_COLOR = "#2d2d2d"
@@ -53,64 +40,69 @@ if "x_range" not in st.session_state:
 if "y_range" not in st.session_state:
     st.session_state.y_range = [-5, 5]
 
-x_min, x_max = st.session_state.x_range
-x, y = compute_graph(equation, freq, x_min, x_max)
+# ── Fragment: only this subtree reruns on chart interaction ─────────────────
+# @st.fragment means a slider drag or equation change triggers a partial rerun
+# of just the chart block — the rest of the page DOM is untouched, removing
+# one full round-trip of serialisation and React reconciliation.
+@st.fragment
+def render_chart(equation: str, freq: int) -> None:
+    x_min, x_max = st.session_state.x_range
+    x, y = compute_graph(equation, freq, x_min, x_max)
 
-fig = go.Figure()
-fig.add_trace(go.Scatter(
-    x=x, y=y,
-    mode="lines",
-    line=dict(color="#1f77b4", width=2),
-    name=equation
-))
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=x, y=y,
+        mode="lines",
+        line=dict(color="#1f77b4", width=2),
+        name=equation
+    ))
 
-fig.update_layout(
-    dragmode="pan",
-    # uirevision keeps Plotly from doing a full teardown/rebuild of the chart
-    # on every Streamlit rerun — pan & zoom state are preserved and updates
-    # are applied as smooth diffs instead of a cold render.
-    uirevision="static",
-    paper_bgcolor=BG_COLOR,
-    plot_bgcolor=BG_COLOR,
-    xaxis=dict(
-        range=st.session_state.x_range,
-        showgrid=True,
-        zeroline=True,
-        zerolinecolor=LINE_COLOR,
-        zerolinewidth=2,
-        gridcolor=GRID_COLOR,
-        color=LINE_COLOR,
-    ),
-    yaxis=dict(
-        range=st.session_state.y_range,
-        showgrid=True,
-        zeroline=True,
-        zerolinecolor=LINE_COLOR,
-        zerolinewidth=2,
-        gridcolor=GRID_COLOR,
-        color=LINE_COLOR,
-    ),
-    font=dict(color=LINE_COLOR),
-    margin=dict(l=0, r=0, t=30, b=0),
-    height=600,
-)
+    fig.update_layout(
+        dragmode="pan",
+        uirevision="static",
+        paper_bgcolor=BG_COLOR,
+        plot_bgcolor=BG_COLOR,
+        xaxis=dict(
+            range=st.session_state.x_range,
+            showgrid=True,
+            zeroline=True,
+            zerolinecolor=LINE_COLOR,
+            zerolinewidth=2,
+            gridcolor=GRID_COLOR,
+            color=LINE_COLOR,
+        ),
+        yaxis=dict(
+            range=st.session_state.y_range,
+            showgrid=True,
+            zeroline=True,
+            zerolinecolor=LINE_COLOR,
+            zerolinewidth=2,
+            gridcolor=GRID_COLOR,
+            color=LINE_COLOR,
+        ),
+        font=dict(color=LINE_COLOR),
+        margin=dict(l=0, r=0, t=30, b=0),
+        height=600,
+    )
 
-event = st.plotly_chart(
-    fig,
-    use_container_width=True,
-    config={
-        "scrollZoom": True,
-        "displayModeBar": True,
-        "modeBarButtonsToRemove": ["select2d", "lasso2d"],
-    },
-    on_select="rerun",
-    key="graph"
-)
+    event = st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={
+            "scrollZoom": True,
+            "displayModeBar": True,
+            "modeBarButtonsToRemove": ["select2d", "lasso2d"],
+        },
+        on_select="rerun",
+        key="graph"
+    )
 
-if event and "layout" in event:
-    layout = event["layout"]
-    if "xaxis.range[0]" in layout:
-        st.session_state.x_range = [layout["xaxis.range[0]"], layout["xaxis.range[1]"]]
-    if "yaxis.range[0]" in layout:
-        st.session_state.y_range = [layout["yaxis.range[0]"], layout["yaxis.range[1]"]]
-    st.rerun()
+    if event and "layout" in event:
+        layout = event["layout"]
+        if "xaxis.range[0]" in layout:
+            st.session_state.x_range = [layout["xaxis.range[0]"], layout["xaxis.range[1]"]]
+        if "yaxis.range[0]" in layout:
+            st.session_state.y_range = [layout["yaxis.range[0]"], layout["yaxis.range[1]"]]
+        st.rerun(scope="fragment")
+
+render_chart(equation, freq)

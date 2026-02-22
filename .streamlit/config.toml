@@ -1,0 +1,16 @@
+[theme]
+base            = "dark"
+backgroundColor = "#0e1117"
+secondaryBackgroundColor = "#161b22"
+primaryColor    = "#1f77b4"
+textColor       = "#ffffff"
+
+[server]
+# Tell Streamlit it's running headless so it skips the browser-open delay
+headless = true
+# Disable usage stats ping — removes one blocking network request on startup
+gatherUsageStats = false
+
+[browser]
+# Suppress the "Want to know how to deploy?" banner — saves a DOM write
+showErrorDetails = false
