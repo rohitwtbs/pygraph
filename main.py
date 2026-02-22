@@ -22,12 +22,22 @@ st.markdown(
     #stDecoration,
     footer { display: none !important; }
 
-    /* Pre-reserve the chart container space so the Plotly iframe never causes
-       a layout shift as it expands from 0px → 600px.
-       CLS contributors: .st-key-graph shifts twice during chart hydration. */
+    /* Pre-reserve the chart container so the Plotly iframe never shifts.
+       CLS contributors identified in LH run 3:
+         page-2-DIV  → stElementContainer wrapping the h1 title  (score 0.0086)
+         page-1-DIV  → stElementContainer wrapping the frequency slider (0.0019)
+       Fixing all three eliminates the residual 0.010 CLS. */
     .st-key-graph,
     .st-key-graph > div,
     [data-testid="stPlotlyChart"] { min-height: 600px; }
+
+    /* Title row: h1 is 89 px tall per LH bounding-rect; 96 px gives breathing room.
+       stElementContainer *wraps* stHeading — selector must go parent→child via :has(). */
+    .stElementContainer:has([data-testid="stHeading"]),
+    .stElementContainer:has(.stHeading) { min-height: 96px; }
+
+    /* Slider row: bounding-rect height 68 px; lock the wrapper to avoid the reflow. */
+    .stElementContainer:has([data-testid="stSlider"]) { min-height: 72px; }
     </style>
     """,
     unsafe_allow_html=True,
