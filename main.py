@@ -17,8 +17,7 @@ st.markdown(
     footer { display: none !important; }
 
     /* Pre-reserve chart height to prevent CLS.
-       Vega-Lite chart container is keyed via .st-key-graph. */
-    .st-key-graph { min-height: 600px; }
+       Vega-Lite renders inline — no iframe shift, so only title/slider need locking. */
 
     /* Title row */
     .stElementContainer:has([data-testid="stHeading"]),
@@ -72,7 +71,6 @@ else:
             height=600,
             color=["#1f77b4"],
             use_container_width=True,
-            key="graph",
         )
 
     render_chart(equation, freq)
