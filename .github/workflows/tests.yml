@@ -31,3 +31,48 @@ jobs:
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
+
+  memray:
+    name: Memory profile (memray)
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies + memray
+        run: pip install -r requirements.txt memray pytest-memray
+
+      - name: Run tests under memray
+        run: |
+          python -m memray run \
+            --output memray-report.bin \
+            --force \
+            -m pytest tests/ -v --tb=short
+
+      - name: Generate flamegraph
+        run: |
+          python -m memray flamegraph \
+            memray-report.bin \
+            --output memray-flamegraph.html \
+            --force
+
+      - name: Generate memory stats table
+        run: |
+          python -m memray stats memray-report.bin
+
+      - name: Upload memray artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: memray-report
+          path: |
+            memray-report.bin
+            memray-flamegraph.html
+          retention-days: 14
