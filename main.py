@@ -8,6 +8,11 @@ st.set_page_config(
     menu_items={},
 )
 
+st.markdown(
+    '<meta name="description" content="PyGraph — plot sin, cos and tan functions interactively. Adjust frequency and explore the graph in your browser.">',
+    unsafe_allow_html=True,
+)
+
 # ── Critical CSS ────────────────────────────────────────────────────────────
 st.markdown(
     """
@@ -25,6 +30,9 @@ st.markdown(
 
     /* Slider row */
     .stElementContainer:has([data-testid="stSlider"]) { min-height: 72px; }
+
+    /* st.info() alert box — bounding-rect height 56px; lock it to prevent CLS. */
+    .stElementContainer:has([data-testid="stAlert"]) { min-height: 60px; }
     </style>
     """,
     unsafe_allow_html=True,
