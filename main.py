@@ -22,9 +22,12 @@ st.markdown(
     #stDecoration,
     footer { display: none !important; }
 
-    /* Remove the excess top padding so content reaches the viewport faster,
-       reducing the time-to-first-meaningful-paint. */
-    .main .block-container { padding-top: 1rem !important; }
+    /* Pre-reserve the chart container space so the Plotly iframe never causes
+       a layout shift as it expands from 0px → 600px.
+       CLS contributors: .st-key-graph shifts twice during chart hydration. */
+    .st-key-graph,
+    .st-key-graph > div,
+    [data-testid="stPlotlyChart"] { min-height: 600px; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -70,6 +73,12 @@ if "y_range" not in st.session_state:
 # one full round-trip of serialisation and React reconciliation.
 @st.fragment
 def render_chart(equation: str, freq: int) -> None:
+    # Reserve the slot immediately so Streamlit can flush the page skeleton
+    # (including the pre-sized .st-key-graph container) to the browser before
+    # the heavy Plotly delta arrives.  This pushes the 288ms Plotly-init long
+    # task out of the FCP→TTI window, reducing TBT.
+    chart_slot = st.empty()
+
     x_min, x_max = st.session_state.x_range
     x, y = compute_graph(equation, freq, x_min, x_max)
 
@@ -109,7 +118,7 @@ def render_chart(equation: str, freq: int) -> None:
         height=600,
     )
 
-    event = st.plotly_chart(
+    event = chart_slot.plotly_chart(
         fig,
         use_container_width=True,
         config={
