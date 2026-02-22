@@ -1,6 +1,6 @@
 import streamlit as st
-import numpy as np
-import pandas as pd
+
+from graph_utils import compute_graph as _compute_graph
 
 st.set_page_config(
     page_title="PyGraph",
@@ -41,17 +41,9 @@ st.markdown(
 
 # ── Cached computation ──────────────────────────────────────────────────────
 @st.cache_data(max_entries=64)
-def compute_graph(equation: str, freq: int) -> pd.DataFrame:
-    # 800 pts gives smooth curves with a small payload.
-    x = np.linspace(-10, 10, 800)
-    if equation == "sin":
-        y = np.sin(freq * x)
-    elif equation == "cos":
-        y = np.cos(freq * x)
-    else:
-        y = np.tan(freq * x)
-    y = np.where(np.isfinite(y), y, np.nan)
-    return pd.DataFrame({equation: y}, index=x)
+def compute_graph(equation: str, freq: int):
+    """Streamlit-cached wrapper around graph_utils.compute_graph."""
+    return _compute_graph(equation, freq)
 
 
 # ── UI ──────────────────────────────────────────────────────────────────────
